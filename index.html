@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sisyphus Table</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<style>
+
+body{
+background:#111;
+color:white;
+font-family:Arial;
+margin:0;
+}
+
+header{
+text-align:center;
+padding:15px;
+font-size:24px;
+background:#000;
+}
+
+.tabs{
+display:flex;
+background:#222;
+}
+
+.tab{
+flex:1;
+padding:15px;
+text-align:center;
+cursor:pointer;
+}
+
+.tab.active{
+background:#444;
+}
+
+.page{
+display:none;
+padding:20px;
+}
+
+.page.active{
+display:block;
+}
+
+button{
+background:#333;
+color:white;
+border:none;
+padding:15px;
+margin:10px;
+border-radius:10px;
+font-size:16px;
+width:120px;
+}
+
+button:hover{
+background:#555;
+}
+
+.control-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+max-width:300px;
+margin:auto;
+}
+
+.patterns{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+
+.pattern{
+background:#222;
+padding:10px;
+border-radius:10px;
+cursor:pointer;
+}
+
+.pattern img{
+width:100%;
+border-radius:6px;
+}
+
+select,input{
+width:100%;
+padding:10px;
+margin-top:10px;
+background:#222;
+color:white;
+border:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>Sisyphus Table</header>
+
+<div class="tabs">
+
+<div class="tab active" onclick="showTab('control')">
+Control
+</div>
+
+<div class="tab" onclick="showTab('led')">
+LED
+</div>
+
+<div class="tab" onclick="showTab('patterns')">
+Patterns
+</div>
+
+</div>
+
+<!-- CONTROL TAB -->
+
+<div id="control" class="page active">
+
+<div class="control-grid">
+
+<button onclick="home()">HOME</button>
+
+<button onclick="unlock()">UNLOCK</button>
+
+<button onclick="play()">PLAY</button>
+
+<button onclick="pause()">PAUSE</button>
+
+<button onclick="resume()">RESUME</button>
+
+<button onclick="stop()">STOP</button>
+
+</div>
+
+</div>
+
+<!-- LED TAB -->
+
+<div id="led" class="page">
+
+<label>Effect</label>
+<select id="effect"></select>
+
+<label>Brightness</label>
+<input type="range" min="0" max="255" id="brightness">
+
+<label>Speed</label>
+<input type="range" min="0" max="255" id="speed">
+
+<label>Intensity</label>
+<input type="range" min="0" max="255" id="intensity">
+
+<button onclick="ledOn()">LED ON</button>
+
+<button onclick="ledOff()">LED OFF</button>
+
+</div>
+
+<!-- PATTERNS TAB -->
+
+<div id="patterns" class="page">
+
+<div class="patterns" id="patternList"></div>
+
+<button onclick="playPattern()">PLAY</button>
+
+</div>
+
+<script>
+
+const API="http://192.168.4.1:5000"
+
+let selectedPattern=""
+
+function showTab(name){
+
+document.querySelectorAll(".page").forEach(p=>{
+p.classList.remove("active")
+})
+
+document.querySelectorAll(".tab").forEach(t=>{
+t.classList.remove("active")
+})
+
+document.getElementById(name).classList.add("active")
+
+event.target.classList.add("active")
+
+}
+
+async function home(){
+fetch(API+"/home")
+}
+
+async function unlock(){
+fetch(API+"/unlock")
+}
+
+async function play(){
+if(selectedPattern!=""){
+fetch(API+"/patterns/play?name="+selectedPattern)
+}
+}
+
+async function pause(){
+fetch(API+"/pause")
+}
+
+async function resume(){
+fetch(API+"/resume")
+}
+
+async function stop(){
+fetch(API+"/stop")
+}
+
+async function ledOn(){
+fetch(API+"/led/on")
+}
+
+async function ledOff(){
+fetch(API+"/led/off")
+}
+
+document.getElementById("effect").onchange=function(){
+fetch(API+"/led/effect?id="+this.value)
+}
+
+document.getElementById("brightness").oninput=function(){
+fetch(API+"/led/brightness?value="+this.value)
+}
+
+document.getElementById("speed").oninput=function(){
+fetch(API+"/led/speed?value="+this.value)
+}
+
+document.getElementById("intensity").oninput=function(){
+fetch(API+"/led/intensity?value="+this.value)
+}
+
+async function loadEffects(){
+
+let res=await fetch(API+"/led/effects")
+let data=await res.json()
+
+let select=document.getElementById("effect")
+
+data.forEach((name,i)=>{
+
+let opt=document.createElement("option")
+
+opt.value=i
+opt.text=name
+
+select.appendChild(opt)
+
+})
+
+}
+
+async function loadPatterns(){
+
+let res=await fetch(API+"/patterns")
+
+let data=await res.json()
+
+let container=document.getElementById("patternList")
+
+data.forEach(p=>{
+
+let div=document.createElement("div")
+
+div.className="pattern"
+
+div.innerHTML=
+"<img src='"+API+"/patterns/preview/"+p+"'>" +
+"<div>"+p+"</div>"
+
+div.onclick=function(){
+
+selectedPattern=p
+
+document.querySelectorAll(".pattern").forEach(x=>{
+x.style.border=""
+})
+
+div.style.border="2px solid white"
+
+}
+
+container.appendChild(div)
+
+})
+
+}
+
+function playPattern(){
+
+if(selectedPattern=="") return
+
+fetch(API+"/patterns/play?name="+selectedPattern)
+
+}
+
+loadEffects()
+
+loadPatterns()
+
+</script>
+<script>
+if("serviceWorker" in navigator){
+navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+</body>
+</html>
