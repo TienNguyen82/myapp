@@ -1,326 +1,470 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>Sisyphus Table</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sisyphus Table</title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f1115" />
 
-<style>
+  <style>
+    :root{
+      --bg:#0f1115;
+      --panel:#171a21;
+      --panel-2:#1f2430;
+      --text:#f5f7fb;
+      --muted:#a7b0c0;
+      --primary:#5da9ff;
+      --danger:#ff5d73;
+      --ok:#39d98a;
+      --border:#2a3140;
+      --shadow:0 10px 30px rgba(0,0,0,.25);
+      --radius:18px;
+    }
 
-body{
-background:#111;
-color:white;
-font-family:Arial;
-margin:0;
-}
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(180deg,#0d1016,#11151d);
+      color:var(--text);
+      min-height:100vh;
+    }
 
-header{
-text-align:center;
-padding:15px;
-font-size:24px;
-background:#000;
-}
+    .app{
+      max-width:720px;
+      margin:0 auto;
+      padding:16px 16px 28px;
+    }
 
-.tabs{
-display:flex;
-background:#222;
-}
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:14px;
+    }
 
-.tab{
-flex:1;
-padding:15px;
-text-align:center;
-cursor:pointer;
-}
+    .title-wrap h1{
+      margin:0;
+      font-size:24px;
+      letter-spacing:.3px;
+    }
 
-.tab.active{
-background:#444;
-}
+    .subtitle{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:4px;
+    }
 
-.page{
-display:none;
-padding:20px;
-}
+    .status-pill{
+      padding:8px 12px;
+      border-radius:999px;
+      background:var(--panel);
+      border:1px solid var(--border);
+      color:var(--muted);
+      font-size:13px;
+      white-space:nowrap;
+    }
 
-.page.active{
-display:block;
-}
+    .tabs{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-bottom:16px;
+    }
 
-button{
-background:#333;
-color:white;
-border:none;
-padding:15px;
-margin:10px;
-border-radius:10px;
-font-size:16px;
-width:120px;
-}
+    .tab{
+      border:none;
+      border-radius:14px;
+      padding:13px 10px;
+      background:var(--panel);
+      color:var(--muted);
+      font-size:15px;
+      font-weight:600;
+      border:1px solid var(--border);
+    }
 
-button:hover{
-background:#555;
-}
+    .tab.active{
+      color:var(--text);
+      background:var(--panel-2);
+      box-shadow:var(--shadow);
+      border-color:#3a4357;
+    }
 
-.control-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-max-width:300px;
-margin:auto;
-}
+    .page{display:none}
+    .page.active{display:block}
 
-.patterns{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-}
+    .card{
+      background:rgba(23,26,33,.96);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+      margin-bottom:14px;
+    }
 
-.pattern{
-background:#222;
-padding:10px;
-border-radius:10px;
-cursor:pointer;
-}
+    .card h2{
+      margin:0 0 12px;
+      font-size:18px;
+    }
 
-.pattern img{
-width:100%;
-border-radius:6px;
-}
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+    }
 
-select,input{
-width:100%;
-padding:10px;
-margin-top:10px;
-background:#222;
-color:white;
-border:none;
-}
+    .btn{
+      width:100%;
+      border:none;
+      border-radius:14px;
+      padding:15px 14px;
+      font-size:15px;
+      font-weight:700;
+      color:#fff;
+      background:#31384a;
+      border:1px solid #3a4357;
+    }
 
-</style>
+    .btn.primary{background:linear-gradient(180deg,#5da9ff,#468cf0)}
+    .btn.ok{background:linear-gradient(180deg,#39d98a,#26ba72)}
+    .btn.warn{background:linear-gradient(180deg,#ffb95d,#f79c27)}
+    .btn.danger{background:linear-gradient(180deg,#ff7387,#ef4e68)}
+    .btn.dark{background:#242a37}
+
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .label{
+      color:var(--muted);
+      font-size:14px;
+      margin-bottom:6px;
+    }
+
+    .value{
+      color:var(--text);
+      font-weight:600;
+    }
+
+    input[type="range"]{
+      width:100%;
+      accent-color:var(--primary);
+    }
+
+    select{
+      width:100%;
+      background:#202634;
+      color:#fff;
+      border:1px solid #394255;
+      border-radius:12px;
+      padding:12px;
+      font-size:15px;
+      outline:none;
+    }
+
+    .pattern-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .pattern-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background:#1b2130;
+      border:1px solid #31384a;
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .pattern-name{
+      font-size:15px;
+      font-weight:600;
+      word-break:break-word;
+    }
+
+    .small{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      padding:18px 8px;
+    }
+
+    .footer-note{
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:10px;
+    }
+  </style>
 </head>
-
 <body>
-
-<header>Sisyphus Table</header>
-
-<div class="tabs">
-
-<div class="tab active" onclick="showTab('control')">
-Control
-</div>
-
-<div class="tab" onclick="showTab('led')">
-LED
-</div>
-
-<div class="tab" onclick="showTab('patterns')">
-Patterns
-</div>
-
-</div>
-
-<!-- CONTROL TAB -->
-
-<div id="control" class="page active">
-
-<div class="control-grid">
-
-<button onclick="home()">HOME</button>
-
-<button onclick="unlock()">UNLOCK</button>
-
-<button onclick="play()">PLAY</button>
-
-<button onclick="pause()">PAUSE</button>
-
-<button onclick="resume()">RESUME</button>
-
-<button onclick="stop()">STOP</button>
-
-</div>
-
-</div>
-
-<!-- LED TAB -->
-
-<div id="led" class="page">
-
-<label>Effect</label>
-<select id="effect"></select>
-
-<label>Brightness</label>
-<input type="range" min="0" max="255" id="brightness">
-
-<label>Speed</label>
-<input type="range" min="0" max="255" id="speed">
-
-<label>Intensity</label>
-<input type="range" min="0" max="255" id="intensity">
-
-<button onclick="ledOn()">LED ON</button>
-
-<button onclick="ledOff()">LED OFF</button>
-
-</div>
-
-<!-- PATTERNS TAB -->
-
-<div id="patterns" class="page">
-
-<div class="patterns" id="patternList"></div>
-
-<button onclick="playPattern()">PLAY</button>
-
-</div>
-
-<script>
-
-const API="http://192.168.4.1:5000"
-
-let selectedPattern=""
-
-function showTab(name){
-
-document.querySelectorAll(".page").forEach(p=>{
-p.classList.remove("active")
-})
-
-document.querySelectorAll(".tab").forEach(t=>{
-t.classList.remove("active")
-})
-
-document.getElementById(name).classList.add("active")
-
-event.target.classList.add("active")
-
-}
-
-async function home(){
-fetch(API+"/home")
-}
-
-async function unlock(){
-fetch(API+"/unlock")
-}
-
-async function play(){
-if(selectedPattern!=""){
-fetch(API+"/patterns/play?name="+selectedPattern)
-}
-}
-
-async function pause(){
-fetch(API+"/pause")
-}
-
-async function resume(){
-fetch(API+"/resume")
-}
-
-async function stop(){
-fetch(API+"/stop")
-}
-
-async function ledOn(){
-fetch(API+"/led/on")
-}
-
-async function ledOff(){
-fetch(API+"/led/off")
-}
-
-document.getElementById("effect").onchange=function(){
-fetch(API+"/led/effect?id="+this.value)
-}
-
-document.getElementById("brightness").oninput=function(){
-fetch(API+"/led/brightness?value="+this.value)
-}
-
-document.getElementById("speed").oninput=function(){
-fetch(API+"/led/speed?value="+this.value)
-}
-
-document.getElementById("intensity").oninput=function(){
-fetch(API+"/led/intensity?value="+this.value)
-}
-
-async function loadEffects(){
-
-let res=await fetch(API+"/led/effects")
-let data=await res.json()
-
-let select=document.getElementById("effect")
-
-data.forEach((name,i)=>{
-
-let opt=document.createElement("option")
-
-opt.value=i
-opt.text=name
-
-select.appendChild(opt)
-
-})
-
-}
-
-async function loadPatterns(){
-
-let res=await fetch(API+"/patterns")
-
-let data=await res.json()
-
-let container=document.getElementById("patternList")
-
-data.forEach(p=>{
-
-let div=document.createElement("div")
-
-div.className="pattern"
-
-div.innerHTML=
-"<img src='"+API+"/patterns/preview/"+p+"'>" +
-"<div>"+p+"</div>"
-
-div.onclick=function(){
-
-selectedPattern=p
-
-document.querySelectorAll(".pattern").forEach(x=>{
-x.style.border=""
-})
-
-div.style.border="2px solid white"
-
-}
-
-container.appendChild(div)
-
-})
-
-}
-
-function playPattern(){
-
-if(selectedPattern=="") return
-
-fetch(API+"/patterns/play?name="+selectedPattern)
-
-}
-
-loadEffects()
-
-loadPatterns()
-
-</script>
-<script>
-if("serviceWorker" in navigator){
-navigator.serviceWorker.register("sw.js");
-}
-</script>
-
+  <div class="app">
+    <div class="topbar">
+      <div class="title-wrap">
+        <h1>Sisyphus Table</h1>
+        <div class="subtitle">Pi API control panel</div>
+      </div>
+      <div class="status-pill" id="grblStatus">Loading status...</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="control">Control</button>
+      <button class="tab" data-tab="led">LED</button>
+      <button class="tab" data-tab="patterns">Patterns</button>
+    </div>
+
+    <!-- CONTROL -->
+    <section id="control" class="page active">
+      <div class="card">
+        <h2>Machine Control</h2>
+        <div class="grid-2">
+          <button class="btn ok" onclick="callApi('/grbl/home')">HOME</button>
+          <button class="btn primary" onclick="callApi('/grbl/unlock')">UNLOCK</button>
+          <button class="btn warn" onclick="callApi('/pattern/pause')">PAUSE</button>
+          <button class="btn primary" onclick="callApi('/pattern/resume')">RESUME</button>
+          <button class="btn danger" onclick="callApi('/pattern/stop')" style="grid-column:1/-1;">STOP</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Machine Status</h2>
+        <div class="row">
+          <div>
+            <div class="label">GRBL reply</div>
+            <div class="value" id="statusText">--</div>
+          </div>
+          <button class="btn dark" style="max-width:170px" onclick="refreshStatus()">REFRESH</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- LED -->
+    <section id="led" class="page">
+      <div class="card">
+        <h2>LED Power</h2>
+        <div class="grid-2">
+          <button class="btn ok" onclick="callApi('/led/on')">LED ON</button>
+          <button class="btn danger" onclick="callApi('/led/off')">LED OFF</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Effects</h2>
+        <div class="label">WLED Effect</div>
+        <select id="effectSelect"></select>
+      </div>
+
+      <div class="card">
+        <h2>Brightness</h2>
+        <div class="row">
+          <span class="label">Value</span>
+          <span class="value" id="brightnessValue">128</span>
+        </div>
+        <input id="brightnessSlider" type="range" min="0" max="255" value="128" />
+      </div>
+
+      <div class="card">
+        <h2>Speed</h2>
+        <div class="row">
+          <span class="label">Value</span>
+          <span class="value" id="speedValue">128</span>
+        </div>
+        <input id="speedSlider" type="range" min="0" max="255" value="128" />
+      </div>
+
+      <div class="card">
+        <h2>Intensity</h2>
+        <div class="row">
+          <span class="label">Value</span>
+          <span class="value" id="intensityValue">128</span>
+        </div>
+        <input id="intensitySlider" type="range" min="0" max="255" value="128" />
+      </div>
+    </section>
+
+    <!-- PATTERNS -->
+    <section id="patterns" class="page">
+      <div class="card">
+        <div class="row">
+          <h2 style="margin:0">Patterns</h2>
+          <button class="btn dark" style="max-width:170px" onclick="loadPatterns()">REFRESH</button>
+        </div>
+      </div>
+
+      <div class="pattern-list" id="patternList">
+        <div class="card empty">Loading patterns...</div>
+      </div>
+    </section>
+
+    <div class="footer-note">Sisyphus DIY controller</div>
+  </div>
+
+  <script>
+    const BASE_URL = "http://192.168.4.1:5000";
+
+    // Tabs
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    async function callApi(path) {
+      try {
+        const res = await fetch(BASE_URL + path);
+        const text = await res.text();
+        updateStatusBox(text);
+        return text;
+      } catch (err) {
+        updateStatusBox("Error: " + err.message);
+        return null;
+      }
+    }
+
+    function updateStatusBox(text) {
+      document.getElementById("statusText").textContent = text || "--";
+    }
+
+    async function refreshStatus() {
+      try {
+        const res = await fetch(BASE_URL + "/grbl/status");
+        const text = await res.text();
+        document.getElementById("grblStatus").textContent = text;
+        document.getElementById("statusText").textContent = text;
+      } catch (err) {
+        document.getElementById("grblStatus").textContent = "Status error";
+        document.getElementById("statusText").textContent = "Error: " + err.message;
+      }
+    }
+
+    function parseSimpleJsonArray(text) {
+      try {
+        return JSON.parse(text);
+      } catch {
+        return [];
+      }
+    }
+
+    // LED
+    async function loadEffects() {
+      const select = document.getElementById("effectSelect");
+      select.innerHTML = '<option>Loading...</option>';
+
+      try {
+        const res = await fetch(BASE_URL + "/led/effects");
+        const text = await res.text();
+        const effects = parseSimpleJsonArray(text);
+
+        select.innerHTML = "";
+        if (!effects.length) {
+          select.innerHTML = '<option>No effects</option>';
+          return;
+        }
+
+        effects.forEach((name, index) => {
+          const opt = document.createElement("option");
+          opt.value = index;
+          opt.textContent = `${index} - ${name}`;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        select.innerHTML = '<option>Load error</option>';
+      }
+    }
+
+    document.getElementById("effectSelect").addEventListener("change", async function () {
+      await callApi("/led/effect?id=" + this.value);
+    });
+
+    const brightnessSlider = document.getElementById("brightnessSlider");
+    const speedSlider = document.getElementById("speedSlider");
+    const intensitySlider = document.getElementById("intensitySlider");
+
+    brightnessSlider.addEventListener("input", () => {
+      document.getElementById("brightnessValue").textContent = brightnessSlider.value;
+    });
+    speedSlider.addEventListener("input", () => {
+      document.getElementById("speedValue").textContent = speedSlider.value;
+    });
+    intensitySlider.addEventListener("input", () => {
+      document.getElementById("intensityValue").textContent = intensitySlider.value;
+    });
+
+    brightnessSlider.addEventListener("change", async () => {
+      await callApi("/led/brightness?v=" + brightnessSlider.value);
+    });
+    speedSlider.addEventListener("change", async () => {
+      await callApi("/led/speed?v=" + speedSlider.value);
+    });
+    intensitySlider.addEventListener("change", async () => {
+      await callApi("/led/intensity?v=" + intensitySlider.value);
+    });
+
+    // Patterns
+    async function loadPatterns() {
+      const container = document.getElementById("patternList");
+      container.innerHTML = '<div class="card empty">Loading patterns...</div>';
+
+      try {
+        const res = await fetch(BASE_URL + "/pattern/list");
+        const text = await res.text();
+        const patterns = parseSimpleJsonArray(text);
+
+        if (!patterns.length) {
+          container.innerHTML = '<div class="card empty">No patterns found</div>';
+          return;
+        }
+
+        container.innerHTML = "";
+        patterns.forEach(name => {
+          const item = document.createElement("div");
+          item.className = "pattern-item";
+          item.innerHTML = `
+            <div>
+              <div class="pattern-name">${name}</div>
+              <div class="small">Tap run to start</div>
+            </div>
+            <button class="btn primary" style="max-width:120px;">RUN</button>
+          `;
+
+          item.querySelector("button").addEventListener("click", async () => {
+            const encoded = encodeURIComponent(name);
+            await callApi("/pattern/run?name=" + encoded);
+          });
+
+          container.appendChild(item);
+        });
+      } catch (err) {
+        container.innerHTML = `<div class="card empty">Load error: ${err.message}</div>`;
+      }
+    }
+
+    // Init
+    refreshStatus();
+    loadEffects();
+    loadPatterns();
+
+    // Refresh status every 3s
+    setInterval(refreshStatus, 3000);
+
+    // PWA
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
 </body>
 </html>
