@@ -1,41 +1,73 @@
-const CACHE_NAME = "sisyphus-webapp-v1";
-const ASSETS = [
-  "./",
-  "./index.html",
+const CACHE_NAME = "sandtable-static-v1";
+const STATIC_ASSETS = [
   "./manifest.json",
   "./icon-192.png",
-  "./icon-512.png"
+  "./icon-512.png",
+  "./sw.js"
 ];
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
+// Cài service worker mới và kích hoạt ngay
+self.addEventListener("install", (event) => {
   self.skipWaiting();
+
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+  );
 });
 
-self.addEventListener("activate", event => {
+// Chiếm quyền điều khiển ngay, đồng thời dọn cache cũ
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
+    caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
       )
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-self.addEventListener("fetch", event => {
-  const url = new URL(event.request.url);
+// Không cache HTML để mỗi lần sửa index là thấy ngay
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
 
-  // Không cache API Pi
-  if (url.hostname === "192.168.4.1") return;
+  // Chỉ xử lý GET
+  if (req.method !== "GET") return;
 
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request);
-    })
-  );
+  // Không can thiệp API nội mạng của Pi
+  // Ví dụ: http://192.168.4.1:5000/...
+  if (url.port === "5000") {
+    return;
+  }
+
+  // Luôn lấy mới với trang HTML / navigation
+  if (req.mode === "navigate" || req.destination === "document") {
+    event.respondWith(
+      fetch(req).catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
+
+  // Asset tĩnh: ưu tiên cache trước
+  if (
+    req.destination === "image" ||
+    req.destination === "style" ||
+    req.destination === "script" ||
+    req.destination === "manifest"
+  ) {
+    event.respondWith(
+      caches.match(req).then((cached) => {
+        if (cached) return cached;
+
+        return fetch(req).then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return response;
+        });
+      })
+    );
+    return;
+  }
 });
