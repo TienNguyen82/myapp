@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sisyphus Table</title>
+  <title>Bàn cát Sisyphus</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#0f1115" />
@@ -212,39 +212,39 @@
   <div class="app">
     <div class="topbar">
       <div class="title-wrap">
-        <h1>Sisyphus Table</h1>
-        <div class="subtitle">Pi API control panel</div>
+        <h1>Bàn cát Sisyphus</h1>
+        <div class="subtitle">Bảng điều khiển API trên Pi</div>
       </div>
-      <div class="status-pill" id="grblStatus">Loading status...</div>
+      <div class="status-pill" id="grblStatus">Đang tải trạng thái...</div>
     </div>
 
     <div class="tabs">
-      <button class="tab active" data-tab="control">Control</button>
+      <button class="tab active" data-tab="control">Điều khiển</button>
       <button class="tab" data-tab="led">LED</button>
-      <button class="tab" data-tab="patterns">Patterns</button>
+      <button class="tab" data-tab="patterns">Mẫu vẽ</button>
     </div>
 
     <!-- CONTROL -->
     <section id="control" class="page active">
       <div class="card">
-        <h2>Machine Control</h2>
+        <h2>Điều khiển máy</h2>
         <div class="grid-2">
-          <button class="btn ok" onclick="callApi('/grbl/home')">HOME</button>
-          <button class="btn primary" onclick="callApi('/grbl/unlock')">UNLOCK</button>
-          <button class="btn warn" onclick="callApi('/pattern/pause')">PAUSE</button>
-          <button class="btn primary" onclick="callApi('/pattern/resume')">RESUME</button>
-          <button class="btn danger" onclick="callApi('/pattern/stop')" style="grid-column:1/-1;">STOP</button>
+          <button class="btn ok" onclick="callApi('/grbl/home')">VỀ GỐC</button>
+          <button class="btn primary" onclick="callApi('/grbl/unlock')">MỞ KHÓA</button>
+          <button class="btn warn" onclick="callApi('/pattern/pause')">TẠM DỪNG</button>
+          <button class="btn primary" onclick="callApi('/pattern/resume')">TIẾP TỤC</button>
+          <button class="btn danger" onclick="callApi('/pattern/stop')" style="grid-column:1/-1;">DỪNG</button>
         </div>
       </div>
 
       <div class="card">
-        <h2>Machine Status</h2>
+        <h2>Trạng thái máy</h2>
         <div class="row">
           <div>
-            <div class="label">GRBL reply</div>
+            <div class="label">Phản hồi GRBL</div>
             <div class="value" id="statusText">--</div>
           </div>
-          <button class="btn dark" style="max-width:170px" onclick="refreshStatus()">REFRESH</button>
+          <button class="btn dark" style="max-width:170px" onclick="refreshStatus()">LÀM MỚI</button>
         </div>
       </div>
     </section>
@@ -252,41 +252,41 @@
     <!-- LED -->
     <section id="led" class="page">
       <div class="card">
-        <h2>LED Power</h2>
+        <h2>Nguồn LED</h2>
         <div class="grid-2">
-          <button class="btn ok" onclick="callApi('/led/on')">LED ON</button>
-          <button class="btn danger" onclick="callApi('/led/off')">LED OFF</button>
+          <button class="btn ok" onclick="callApi('/led/on')">BẬT LED</button>
+          <button class="btn danger" onclick="callApi('/led/off')">TẮT LED</button>
         </div>
       </div>
 
       <div class="card">
-        <h2>Effects</h2>
-        <div class="label">WLED Effect</div>
+        <h2>Hiệu ứng</h2>
+        <div class="label">Hiệu ứng WLED</div>
         <select id="effectSelect"></select>
       </div>
 
       <div class="card">
-        <h2>Brightness</h2>
+        <h2>Độ sáng</h2>
         <div class="row">
-          <span class="label">Value</span>
+          <span class="label">Giá trị</span>
           <span class="value" id="brightnessValue">128</span>
         </div>
         <input id="brightnessSlider" type="range" min="0" max="255" value="128" />
       </div>
 
       <div class="card">
-        <h2>Speed</h2>
+        <h2>Tốc độ</h2>
         <div class="row">
-          <span class="label">Value</span>
+          <span class="label">Giá trị</span>
           <span class="value" id="speedValue">128</span>
         </div>
         <input id="speedSlider" type="range" min="0" max="255" value="128" />
       </div>
 
       <div class="card">
-        <h2>Intensity</h2>
+        <h2>Cường độ</h2>
         <div class="row">
-          <span class="label">Value</span>
+          <span class="label">Giá trị</span>
           <span class="value" id="intensityValue">128</span>
         </div>
         <input id="intensitySlider" type="range" min="0" max="255" value="128" />
@@ -297,17 +297,17 @@
     <section id="patterns" class="page">
       <div class="card">
         <div class="row">
-          <h2 style="margin:0">Patterns</h2>
-          <button class="btn dark" style="max-width:170px" onclick="loadPatterns()">REFRESH</button>
+          <h2 style="margin:0">Mẫu vẽ</h2>
+          <button class="btn dark" style="max-width:170px" onclick="loadPatterns()">LÀM MỚI</button>
         </div>
       </div>
 
       <div class="pattern-list" id="patternList">
-        <div class="card empty">Loading patterns...</div>
+        <div class="card empty">Đang tải danh sách mẫu...</div>
       </div>
     </section>
 
-    <div class="footer-note">Sisyphus DIY controller</div>
+    <div class="footer-note">Bộ điều khiển DIY cho bàn cát Sisyphus</div>
   </div>
 
   <script>
@@ -330,7 +330,7 @@
         updateStatusBox(text);
         return text;
       } catch (err) {
-        updateStatusBox("Error: " + err.message);
+        updateStatusBox("Lỗi: " + err.message);
         return null;
       }
     }
@@ -346,8 +346,8 @@
         document.getElementById("grblStatus").textContent = text;
         document.getElementById("statusText").textContent = text;
       } catch (err) {
-        document.getElementById("grblStatus").textContent = "Status error";
-        document.getElementById("statusText").textContent = "Error: " + err.message;
+        document.getElementById("grblStatus").textContent = "Lỗi trạng thái";
+        document.getElementById("statusText").textContent = "Lỗi: " + err.message;
       }
     }
 
@@ -362,7 +362,7 @@
     // LED
     async function loadEffects() {
       const select = document.getElementById("effectSelect");
-      select.innerHTML = '<option>Loading...</option>';
+      select.innerHTML = '<option>Đang tải...</option>';
 
       try {
         const res = await fetch(BASE_URL + "/led/effects");
@@ -371,7 +371,7 @@
 
         select.innerHTML = "";
         if (!effects.length) {
-          select.innerHTML = '<option>No effects</option>';
+          select.innerHTML = '<option>Không có hiệu ứng</option>';
           return;
         }
 
@@ -382,7 +382,7 @@
           select.appendChild(opt);
         });
       } catch (err) {
-        select.innerHTML = '<option>Load error</option>';
+        select.innerHTML = '<option>Lỗi tải dữ liệu</option>';
       }
     }
 
@@ -417,7 +417,7 @@
     // Patterns
     async function loadPatterns() {
       const container = document.getElementById("patternList");
-      container.innerHTML = '<div class="card empty">Loading patterns...</div>';
+      container.innerHTML = '<div class="card empty">Đang tải danh sách mẫu...</div>';
 
       try {
         const res = await fetch(BASE_URL + "/pattern/list");
@@ -425,7 +425,7 @@
         const patterns = parseSimpleJsonArray(text);
 
         if (!patterns.length) {
-          container.innerHTML = '<div class="card empty">No patterns found</div>';
+          container.innerHTML = '<div class="card empty">Không tìm thấy mẫu vẽ</div>';
           return;
         }
 
@@ -436,9 +436,9 @@
           item.innerHTML = `
             <div>
               <div class="pattern-name">${name}</div>
-              <div class="small">Tap run to start</div>
+              <div class="small">Nhấn chạy để bắt đầu</div>
             </div>
-            <button class="btn primary" style="max-width:120px;">RUN</button>
+            <button class="btn primary" style="max-width:120px;">CHẠY</button>
           `;
 
           item.querySelector("button").addEventListener("click", async () => {
@@ -449,7 +449,7 @@
           container.appendChild(item);
         });
       } catch (err) {
-        container.innerHTML = `<div class="card empty">Load error: ${err.message}</div>`;
+        container.innerHTML = `<div class="card empty">Lỗi tải dữ liệu: ${err.message}</div>`;
       }
     }
 
@@ -460,8 +460,8 @@
 
     // Refresh status every 3s
     setInterval(refreshStatus, 3000);
+  </script>
 
-    // PWA
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js");
