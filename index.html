@@ -200,6 +200,23 @@
       padding:18px 8px;
     }
 
+
+    .progress-wrap{
+      margin-top:10px;
+      background:#1b2130;
+      border:1px solid #31384a;
+      border-radius:999px;
+      overflow:hidden;
+      height:18px;
+    }
+
+    .progress-bar{
+      width:0%;
+      height:100%;
+      background:linear-gradient(90deg,#39d98a,#5da9ff);
+      transition:width .3s ease;
+    }
+
     .footer-note{
       text-align:center;
       color:var(--muted);
@@ -302,6 +319,19 @@
         </div>
       </div>
 
+      <div class="card">
+        <h2>Tiến trình chạy</h2>
+        <div class="label">Trạng thái hiện tại</div>
+        <div class="value" id="patternStatusText">Chưa chạy</div>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="patternProgressBar"></div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <div class="small" id="patternProgressText">0%</div>
+          <div class="small" id="patternProgressFile">--</div>
+        </div>
+      </div>
+
       <div class="pattern-list" id="patternList">
         <div class="card empty">Đang tải danh sách mẫu...</div>
       </div>
@@ -328,6 +358,11 @@
         const res = await fetch(BASE_URL + path);
         const text = await res.text();
         updateStatusBox(text);
+
+        if (path.startsWith("/pattern/")) {
+          setTimeout(loadPatternProgress, 150);
+        }
+
         return text;
       } catch (err) {
         updateStatusBox("Lỗi: " + err.message);
@@ -444,6 +479,7 @@
           item.querySelector("button").addEventListener("click", async () => {
             const encoded = encodeURIComponent(name);
             await callApi("/pattern/run?name=" + encoded);
+            loadPatternProgress();
           });
 
           container.appendChild(item);
@@ -453,13 +489,52 @@
       }
     }
 
+
+    async function loadPatternProgress() {
+      try {
+        const res = await fetch(BASE_URL + "/pattern/progress");
+        const data = await res.json();
+
+        const statusText = document.getElementById("patternStatusText");
+        const progressBar = document.getElementById("patternProgressBar");
+        const progressText = document.getElementById("patternProgressText");
+        const progressFile = document.getElementById("patternProgressFile");
+
+        if (!statusText || !progressBar || !progressText || !progressFile) return;
+
+        const statusMap = {
+          idle: "Chưa chạy",
+          starting: "Đang khởi động",
+          running: "Đang chạy",
+          paused: "Đang tạm dừng",
+          stopped: "Đã dừng",
+          done: "Hoàn tất",
+          error: "Lỗi"
+        };
+
+        const statusLabel = statusMap[data.status] || (data.status || "Không rõ");
+        statusText.textContent = statusLabel;
+        progressBar.style.width = `${data.progress || 0}%`;
+        progressText.textContent = `${data.progress || 0}% (${data.current_line || 0}/${data.total_lines || 0})`;
+        progressFile.textContent = data.current_file ? `File: ${data.current_file}` : "--";
+
+        if (data.last_error) {
+          updateStatusBox("Lỗi pattern: " + data.last_error);
+        }
+      } catch (err) {
+        console.log("Progress load error:", err);
+      }
+    }
+
     // Init
     refreshStatus();
     loadEffects();
     loadPatterns();
+    loadPatternProgress();
 
     // Refresh status every 3s
     setInterval(refreshStatus, 3000);
+    setInterval(loadPatternProgress, 1000);
   </script>
 
   <script>
