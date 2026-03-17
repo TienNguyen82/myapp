@@ -447,11 +447,6 @@ async function connectWifi(){
 loadPatterns();
 scanWifi();
 
-// ===== SERVICE WORKER =====
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("./sw.js");
-}
-
 </script>
 </body>
 </html>
