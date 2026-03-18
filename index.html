@@ -139,11 +139,29 @@
       font-size:12px;
       color:var(--muted);
     }
+    .status-row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      margin-top:8px;
+      font-size:14px;
+    }
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      display:inline-block;
+      vertical-align:middle;
+      margin-right:6px;
+      background:#666;
+    }
+    .dot.ok{background:var(--ok)}
+    .dot.bad{background:var(--danger)}
     input[type="range"]{
       width:100%;
       accent-color:var(--primary);
     }
-    select{
+    input[type="password"], input[type="text"], select{
       width:100%;
       background:#202634;
       color:#fff;
@@ -177,29 +195,174 @@
       color:var(--muted);
       padding:18px 8px;
     }
+    .progress-wrap{
+      margin-top:10px;
+      background:#1b2130;
+      border:1px solid #31384a;
+      border-radius:999px;
+      overflow:hidden;
+      height:18px;
+    }
+    .progress-bar{
+      width:0%;
+      height:100%;
+      background:linear-gradient(90deg,#39d98a,#5da9ff);
+      transition:width .3s ease;
+    }
+    .wifi-list{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    .wifi-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:12px;
+      border-radius:14px;
+      background:#1b2130;
+      border:1px solid #31384a;
+    }
     .footer-note{
-      margin-top:18px;
       text-align:center;
       color:var(--muted);
-      font-size:13px;
+      font-size:12px;
+      margin-top:10px;
     }
+
+    .app-loader{
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #141a24 0%, #0f1115 55%, #0b0d11 100%);
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.45s ease, visibility 0.45s ease;
+    }
+
+    .app-loader.hidden{
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loader-wrap{
+      text-align: center;
+      transform: translateY(-4px);
+    }
+
+    .sand-loader{
+      width: 180px;
+      height: 180px;
+      display: block;
+      margin: 0 auto 18px;
+    }
+
+    .loader-title{
+      color: #f2eadb;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+    }
+
+    .loader-subtitle{
+      color: rgba(242,234,219,0.72);
+      font-size: 14px;
+      letter-spacing: 0.2px;
+    }
+
+  
+    /* ===== LOADER PREMIUM ===== */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #0b1220, #020617);
+  overflow: hidden;
+  z-index: 9999;
+}
+
+/* bubbles */
+.bg-bubbles span {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  animation: float 12s infinite linear;
+}
+
+.bg-bubbles span:nth-child(1){ width:80px;height:80px;left:10%;top:70%;}
+.bg-bubbles span:nth-child(2){ width:120px;height:120px;left:70%;top:60%;}
+.bg-bubbles span:nth-child(3){ width:60px;height:60px;left:40%;top:80%;}
+.bg-bubbles span:nth-child(4){ width:100px;height:100px;left:80%;top:20%;}
+.bg-bubbles span:nth-child(5){ width:70px;height:70px;left:20%;top:30%;}
+.bg-bubbles span:nth-child(6){ width:90px;height:90px;left:50%;top:10%;}
+
+@keyframes float {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-200px); }
+}
+
+/* canvas */
+#neonCanvas {
+  position: absolute;
+  inset: 0;
+}
+
+/* text */
+.loader-text {
+  position: absolute;
+  bottom: 25%;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.sub {
+  opacity: 0.6;
+}
+
   </style>
 </head>
 <body>
+
+<!-- LOADER PREMIUM -->
+<div id="loader">
+  <div class="bg-bubbles">
+    <span></span><span></span><span></span>
+    <span></span><span></span><span></span>
+  </div>
+
+  <canvas id="neonCanvas"></canvas>
+
+  <div class="loader-text">
+    <div class="title">Bàn Cát</div>
+    <div class="sub">Đang khởi động hệ thống...</div>
+  </div>
+</div>
+
   <div class="app">
     <div class="topbar">
       <div class="title-wrap">
         <h1>Bàn Cát</h1>
         <div class="subtitle">Bảng điều khiển API trên Pi</div>
       </div>
-      <div class="status-pill" id="grblStatus">Đang tải...</div>
+      <div class="status-pill" id="grblStatus">Đang tải trạng thái...</div>
     </div>
 
     <div class="tabs">
       <button class="tab active" data-tab="control">Điều khiển</button>
       <button class="tab" data-tab="led">LED</button>
       <button class="tab" data-tab="patterns">Mẫu vẽ</button>
-      <button class="tab" data-tab="wifi">Wi-Fi</button>
+      <button class="tab" data-tab="wifi">Wi‑Fi</button>
     </div>
 
     <section id="control" class="page active">
@@ -215,11 +378,26 @@
       </div>
 
       <div class="card">
+        <h2>Nguồn bàn</h2>
+        <div class="grid-2">
+          <button class="btn ok" onclick="powerOn()">POWER ON</button>
+          <button class="btn danger" onclick="powerOff()">POWER OFF</button>
+        </div>
+        <div class="status-row" style="margin-top:12px;">
+          <span id="powerDot" class="dot"></span>
+          <span class="value" id="powerStatusText">Đang kiểm tra...</span>
+        </div>
+      </div>
+
+      <div class="card">
         <h2>Trạng thái máy</h2>
         <div class="row">
-          <div>
+          <div style="flex:1">
             <div class="label">Phản hồi GRBL</div>
             <div class="value" id="statusText">--</div>
+
+            <div class="status-row">WiFi: <span id="wifiStatus">Checking...</span></div>
+            <div class="status-row">Pattern: <span id="patternMiniStatus">--</span></div>
           </div>
           <button class="btn dark" style="max-width:170px" onclick="refreshStatus()">LÀM MỚI</button>
         </div>
@@ -237,7 +415,7 @@
 
       <div class="card">
         <h2>Hiệu ứng</h2>
-        <div class="label">WLED Effect</div>
+        <div class="label">Hiệu ứng WLED</div>
         <select id="effectSelect"></select>
       </div>
 
@@ -277,45 +455,57 @@
         </div>
       </div>
 
+      <div class="card">
+        <h2>Tiến trình chạy</h2>
+        <div class="label">Trạng thái hiện tại</div>
+        <div class="value" id="patternStatusText">Chưa chạy</div>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="patternProgressBar"></div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <div class="small" id="patternProgressText">0%</div>
+          <div class="small" id="patternProgressFile">--</div>
+        </div>
+      </div>
+
       <div class="pattern-list" id="patternList">
-        <div class="card empty">Đang tải mẫu vẽ...</div>
+        <div class="card empty">Đang tải danh sách mẫu...</div>
       </div>
     </section>
 
     <section id="wifi" class="page">
       <div class="card">
-        <div class="row">
-          <h2 style="margin:0">Wi‑Fi</h2>
-          <button class="btn dark" style="max-width:170px" onclick="scanWifi()">QUÉT LẠI</button>
+        <h2>Trạng thái Wi‑Fi</h2>
+        <div class="status-row">
+          <span id="wifiPageDot" class="dot"></span>
+          <span class="value" id="wifiPageStatus">Checking...</span>
         </div>
       </div>
 
       <div class="card">
-        <div class="label">Mạng đang kết nối</div>
-        <div class="value" id="wifiCurrent">Đang tải...</div>
+        <div class="row">
+          <h2 style="margin:0">Quét mạng</h2>
+          <button class="btn dark" style="max-width:170px" onclick="scanWifi()">SCAN</button>
+        </div>
+        <div class="small" style="margin-top:6px;">Mạng đã chọn: <span id="selectedWifiText">Chưa chọn</span></div>
+        <div class="wifi-list" id="wifiList">
+          <div class="card empty">Chưa quét mạng.</div>
+        </div>
       </div>
 
       <div class="card">
-        <div class="label">Danh sách mạng</div>
-        <select id="wifiSelect">
-          <option>Đang quét...</option>
-        </select>
-      </div>
-
-      <div class="card">
-        <div class="label">Mật khẩu</div>
-        <input
-          id="wifiPassword"
-          type="password"
-          placeholder="Nhập mật khẩu Wi‑Fi"
-          style="width:100%;background:#202634;color:#fff;border:1px solid #394255;border-radius:12px;padding:12px;font-size:15px;outline:none;"
-        />
-        <div style="height:12px"></div>
-        <button class="btn primary" onclick="connectWifi()">KẾT NỐI</button>
+        <h2>Kết nối mạng</h2>
+        <div class="label">Mật khẩu Wi‑Fi</div>
+        <input id="wifiPass" type="password" placeholder="Nhập mật khẩu Wi‑Fi" />
+        <div class="grid-2" style="margin-top:12px;">
+          <button class="btn primary" onclick="connectWifi()">CONNECT</button>
+          <button class="btn danger" onclick="disconnectWifi()">DISCONNECT</button>
+        </div>
+        <div class="small" id="wifiActionText" style="margin-top:10px;">--</div>
       </div>
     </section>
 
-    <div class="footer-note">Bộ điều khiển DIY cho bàn cát</div>
+    <div class="footer-note">Bộ điều khiển cho bàn cát</div>
   </div>
 
   <script>
@@ -332,64 +522,97 @@
       });
     });
 
+    async function fetchText(path, options) {
+      const res = await fetch(BASE_URL + path, options);
+      return await res.text();
+    }
+
     async function callApi(path, options) {
       try {
-        const res = await fetch(BASE_URL + path, options);
-        const text = await res.text();
+        const text = await fetchText(path, options);
         updateStatusBox(text);
+        refreshStatus();
         return text;
       } catch (err) {
-        updateStatusBox("Lỗi kết nối");
+        updateStatusBox("Error: " + err.message);
         return null;
       }
     }
 
     function updateStatusBox(text) {
-      document.getElementById("statusText").textContent = text || "--";
+      const el = document.getElementById("statusText");
+      if (el) el.textContent = text || "--";
+    }
+
+    function parseSimpleJsonArray(text) {
+      try { return JSON.parse(text); } catch { return []; }
     }
 
     async function refreshStatus() {
       try {
-        const res = await fetch(BASE_URL + "/grbl/status");
-        const text = await res.text();
-        document.getElementById("grblStatus").textContent = text;
-        document.getElementById("statusText").textContent = text;
+        const res = await fetch(BASE_URL + "/status");
+        const data = await res.json();
+
+        document.getElementById("grblStatus").textContent =
+          data.grbl_status || "Unknown";
+        document.getElementById("statusText").textContent =
+          data.grbl_status || "--";
+
+        if (data.wifi && data.wifi.connected) {
+          document.getElementById("wifiStatus").textContent =
+            `${data.wifi.ssid} (Connected)`;
+          document.getElementById("wifiPageStatus").textContent =
+            `${data.wifi.ssid} (Connected)`;
+          document.getElementById("wifiPageDot").className = "dot ok";
+        } else {
+          document.getElementById("wifiStatus").textContent = "Not connected";
+          document.getElementById("wifiPageStatus").textContent = "Not connected";
+          document.getElementById("wifiPageDot").className = "dot bad";
+        }
+
+        const pText = data.current_pattern
+          ? `${data.current_pattern} - ${data.pattern_status || "--"}`
+          : (data.pattern_status || "--");
+        document.getElementById("patternMiniStatus").textContent = pText;
+
+        const powerOn = !!data.power;
+        document.getElementById("powerStatusText").textContent = powerOn ? "Nguồn đang bật" : "Nguồn đang tắt";
+        document.getElementById("powerDot").className = powerOn ? "dot ok" : "dot bad";
       } catch (err) {
-        document.getElementById("grblStatus").textContent = "Lỗi";
-        document.getElementById("statusText").textContent = "Lỗi kết nối";
+        document.getElementById("grblStatus").textContent = "Status error";
+        document.getElementById("statusText").textContent = "Error: " + err.message;
+        document.getElementById("wifiStatus").textContent = "Not connected";
+        document.getElementById("wifiPageStatus").textContent = "Not connected";
+        document.getElementById("wifiPageDot").className = "dot bad";
       }
     }
 
-    function parseSimpleJsonArray(text) {
-      try {
-        return JSON.parse(text);
-      } catch {
-        return [];
-      }
+    async function powerOn() {
+      await callApi("/power/on", { method: "POST" });
+    }
+
+    async function powerOff() {
+      await callApi("/power/off", { method: "POST" });
     }
 
     async function loadEffects() {
       const select = document.getElementById("effectSelect");
       select.innerHTML = '<option>Loading...</option>';
-
       try {
-        const res = await fetch(BASE_URL + "/led/effects");
-        const text = await res.text();
+        const text = await fetchText("/led/effects");
         const effects = parseSimpleJsonArray(text);
-
         select.innerHTML = "";
         if (!effects.length) {
           select.innerHTML = '<option>No effects</option>';
           return;
         }
-
         effects.forEach((name, index) => {
           const opt = document.createElement("option");
           opt.value = index;
           opt.textContent = `${index} - ${name}`;
           select.appendChild(opt);
         });
-      } catch (err) {
+      } catch {
         select.innerHTML = '<option>Load error</option>';
       }
     }
@@ -424,15 +647,13 @@
 
     async function loadPatterns() {
       const container = document.getElementById("patternList");
-      container.innerHTML = '<div class="card empty">Loading patterns...</div>';
-
+      container.innerHTML = '<div class="card empty">Đang tải danh sách mẫu...</div>';
       try {
-        const res = await fetch(BASE_URL + "/pattern/list");
-        const text = await res.text();
+        const text = await fetchText("/pattern/list");
         const patterns = parseSimpleJsonArray(text);
 
         if (!patterns.length) {
-          container.innerHTML = '<div class="card empty">No patterns found</div>';
+          container.innerHTML = '<div class="card empty">Không có mẫu nào.</div>';
           return;
         }
 
@@ -443,110 +664,211 @@
           item.innerHTML = `
             <div>
               <div class="pattern-name">${name}</div>
-              <div class="small">Tap run to start</div>
+              <div class="small">Nhấn RUN để bắt đầu</div>
             </div>
             <button class="btn primary" style="max-width:120px;">RUN</button>
           `;
-
           item.querySelector("button").addEventListener("click", async () => {
             const encoded = encodeURIComponent(name);
             await callApi("/pattern/run?name=" + encoded);
+            loadPatternProgress();
           });
-
           container.appendChild(item);
         });
       } catch (err) {
-        container.innerHTML = `<div class="card empty">Load error: ${err.message}</div>`;
+        container.innerHTML = `<div class="card empty">Lỗi tải dữ liệu: ${err.message}</div>`;
       }
     }
 
+    async function loadPatternProgress() {
+      try {
+        const res = await fetch(BASE_URL + "/pattern/progress");
+        const data = await res.json();
+
+        const statusText = document.getElementById("patternStatusText");
+        const progressBar = document.getElementById("patternProgressBar");
+        const progressText = document.getElementById("patternProgressText");
+        const progressFile = document.getElementById("patternProgressFile");
+
+        const statusMap = {
+          idle: "Chưa chạy",
+          starting: "Đang khởi động",
+          running: "Đang chạy",
+          paused: "Đang tạm dừng",
+          stopped: "Đã dừng",
+          done: "Hoàn tất",
+          error: "Lỗi"
+        };
+
+        const statusLabel = statusMap[data.status] || (data.status || "Không rõ");
+        statusText.textContent = statusLabel;
+        progressBar.style.width = `${data.progress || 0}%`;
+        progressText.textContent = `${data.progress || 0}% (${data.current_line || 0}/${data.total_lines || 0})`;
+        progressFile.textContent = data.current_file ? `File: ${data.current_file}` : "--";
+
+        if (data.last_error) {
+          updateStatusBox("Lỗi pattern: " + data.last_error);
+        }
+      } catch (err) {
+        console.log("Progress load error:", err);
+      }
+    }
+
+    let selectedWifi = "";
+
+    function setWifiMessage(msg) {
+      document.getElementById("wifiActionText").textContent = msg || "--";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function selectWifi(ssid) {
+      selectedWifi = ssid;
+      document.getElementById("selectedWifiText").textContent = ssid || "Chưa chọn";
+      setWifiMessage("Đã chọn mạng: " + ssid);
+    }
+
     async function scanWifi() {
-      const select = document.getElementById("wifiSelect");
-      const current = document.getElementById("wifiCurrent");
-      if (!select || !current) return;
-
-      select.innerHTML = '<option>Đang quét...</option>';
-
+      const list = document.getElementById("wifiList");
+      list.innerHTML = '<div class="card empty">Đang quét mạng...</div>';
       try {
         const res = await fetch(BASE_URL + "/wifi/scan");
-        const text = await res.text();
-        let data = {};
-        try {
-          data = JSON.parse(text);
-        } catch {
-          data = {};
-        }
-
-        const currentSsid = data.current_ssid || data.ssid || "Chưa kết nối";
-        current.textContent = currentSsid;
-
+        const data = await res.json();
         const networks = Array.isArray(data.networks) ? data.networks : [];
-        select.innerHTML = "";
-
         if (!networks.length) {
-          select.innerHTML = '<option>Không tìm thấy Wi‑Fi</option>';
+          list.innerHTML = '<div class="card empty">Không tìm thấy mạng nào.</div>';
           return;
         }
 
+        list.innerHTML = "";
         networks.forEach(net => {
-          const opt = document.createElement("option");
-          if (typeof net === "string") {
-            opt.value = net;
-            opt.textContent = net;
-          } else {
-            const ssid = net.ssid || "(ẩn SSID)";
-            const signal = net.signal ? ` (${net.signal})` : "";
-            opt.value = ssid;
-            opt.textContent = ssid + signal;
-          }
-          select.appendChild(opt);
+          const ssid = net.ssid || "";
+          const signal = net.signal ?? "--";
+          const security = net.security || "OPEN";
+
+          const item = document.createElement("div");
+          item.className = "wifi-item";
+          item.innerHTML = `
+            <div>
+              <div class="pattern-name">${escapeHtml(ssid)}</div>
+              <div class="small">${escapeHtml(security)} • ${escapeHtml(signal)}</div>
+            </div>
+            <button class="btn primary" style="max-width:120px;">CHỌN</button>
+          `;
+          item.querySelector("button").addEventListener("click", () => selectWifi(ssid));
+          list.appendChild(item);
         });
       } catch (err) {
-        current.textContent = "Lỗi quét Wi‑Fi";
-        select.innerHTML = '<option>Lỗi tải danh sách</option>';
+        list.innerHTML = `<div class="card empty">Lỗi quét Wi‑Fi: ${err.message}</div>`;
       }
     }
 
     async function connectWifi() {
-      const select = document.getElementById("wifiSelect");
-      const password = document.getElementById("wifiPassword");
-      const current = document.getElementById("wifiCurrent");
-      if (!select || !password || !current) return;
-
-      const ssid = select.value;
-      const pass = password.value;
-
-      if (!ssid) {
-        current.textContent = "Chưa chọn Wi‑Fi";
+      if (!selectedWifi) {
+        setWifiMessage("Chưa chọn mạng Wi‑Fi.");
         return;
       }
-
-      current.textContent = "Đang kết nối...";
-
+      const password = document.getElementById("wifiPass").value || "";
       try {
         const res = await fetch(BASE_URL + "/wifi/connect", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ssid: ssid, password: pass })
+          body: JSON.stringify({
+            ssid: selectedWifi,
+            password: password
+          })
         });
-
-        const text = await res.text();
-        current.textContent = text || "Đã gửi lệnh kết nối";
+        const data = await res.json();
+        if (data.ok) {
+          setWifiMessage(`Đang kết nối tới ${selectedWifi}...`);
+          setTimeout(refreshStatus, 2000);
+        } else {
+          setWifiMessage(data.error || "Kết nối thất bại.");
+        }
       } catch (err) {
-        current.textContent = "Lỗi kết nối Wi‑Fi";
+        setWifiMessage("Lỗi kết nối Wi‑Fi: " + err.message);
+      }
+    }
+
+    async function disconnectWifi() {
+      try {
+        const res = await fetch(BASE_URL + "/wifi/disconnect", { method: "POST" });
+        const data = await res.json();
+        if (data.ok) {
+          setWifiMessage("Đã ngắt Wi‑Fi client.");
+        } else {
+          setWifiMessage(data.error || "Ngắt kết nối thất bại.");
+        }
+        setTimeout(refreshStatus, 1200);
+      } catch (err) {
+        setWifiMessage("Lỗi ngắt Wi‑Fi: " + err.message);
       }
     }
 
     refreshStatus();
     loadEffects();
     loadPatterns();
-    scanWifi();
+    loadPatternProgress();
 
     setInterval(refreshStatus, 3000);
-
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js");
-    }
+    setInterval(loadPatternProgress, 1000);
   </script>
+
+<script>
+const canvas = document.getElementById("neonCanvas");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+function resize(){
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+resize();
+window.onresize = resize;
+
+// điểm chuyển động
+let t = 0;
+
+function draw() {
+  ctx.fillStyle = "rgba(2,6,23,0.15)";
+  ctx.fillRect(0,0,w,h);
+
+  let x = w/2 + Math.sin(t/20) * 120;
+  let y = h/2 + Math.cos(t/30) * 120;
+
+  // màu đổi liên tục
+  let r = Math.sin(t*0.05)*127+128;
+  let g = Math.sin(t*0.07)*127+128;
+  let b = Math.sin(t*0.09)*127+128;
+
+  ctx.beginPath();
+  ctx.arc(x,y,3,0,Math.PI*2);
+  ctx.fillStyle = `rgb(${r},${g},${b})`;
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = `rgb(${r},${g},${b})`;
+  ctx.fill();
+
+  t++;
+  requestAnimationFrame(draw);
+}
+draw();
+
+// hide loader
+function hideLoader(){
+  const l = document.getElementById("loader");
+  l.style.opacity = "0";
+  setTimeout(()=> l.remove(),500);
+}
+
+setTimeout(hideLoader, 4000);
+</script>
+
 </body>
 </html>
