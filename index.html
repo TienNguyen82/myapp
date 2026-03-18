@@ -64,7 +64,7 @@
     }
     .tabs{
       display:grid;
-      grid-template-columns:repeat(3,1fr);
+      grid-template-columns:repeat(4,1fr);
       gap:8px;
       margin-bottom:14px;
     }
@@ -199,6 +199,7 @@
       <button class="tab active" data-tab="control">Điều khiển</button>
       <button class="tab" data-tab="led">LED</button>
       <button class="tab" data-tab="patterns">Mẫu vẽ</button>
+      <button class="tab" data-tab="wifi">Wi-Fi</button>
     </div>
 
     <section id="control" class="page active">
@@ -281,172 +282,271 @@
       </div>
     </section>
 
+    <section id="wifi" class="page">
+      <div class="card">
+        <div class="row">
+          <h2 style="margin:0">Wi‑Fi</h2>
+          <button class="btn dark" style="max-width:170px" onclick="scanWifi()">QUÉT LẠI</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">Mạng đang kết nối</div>
+        <div class="value" id="wifiCurrent">Đang tải...</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Danh sách mạng</div>
+        <select id="wifiSelect">
+          <option>Đang quét...</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="label">Mật khẩu</div>
+        <input
+          id="wifiPassword"
+          type="password"
+          placeholder="Nhập mật khẩu Wi‑Fi"
+          style="width:100%;background:#202634;color:#fff;border:1px solid #394255;border-radius:12px;padding:12px;font-size:15px;outline:none;"
+        />
+        <div style="height:12px"></div>
+        <button class="btn primary" onclick="connectWifi()">KẾT NỐI</button>
+      </div>
+    </section>
+
     <div class="footer-note">Bộ điều khiển DIY cho bàn cát</div>
   </div>
 
-<script>
+  <script>
+    const IS_GITHUB = location.hostname.includes("github.io");
+    const API_BASE = "http://192.168.4.1:5000";
+    const BASE_URL = IS_GITHUB ? API_BASE : "";
 
-// ===== FIX BASE URL =====
-const IS_GITHUB = location.hostname.includes("github.io");
-const BASE_URL = IS_GITHUB ? "http://192.168.4.1:5000" : "";
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
 
-// ===== TAB SWITCH =====
-document.querySelectorAll(".tab").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById(btn.dataset.tab).classList.add("active");
-  });
-});
-
-// ===== SAFE FETCH =====
-async function safeFetch(url, options){
-  const res = await fetch(BASE_URL + url, options);
-  const text = await res.text();
-
-  if (text.startsWith("<!DOCTYPE")) {
-    throw new Error("Sai API (đang gọi Git thay vì Pi)");
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
-  }
-}
-
-// ===== API =====
-async function callApi(path, options){
-  try{
-    const res = await safeFetch(path, options);
-    if(document.getElementById("statusText")){
-      document.getElementById("statusText").innerText =
-        typeof res === "string" ? res : JSON.stringify(res);
+    async function callApi(path, options) {
+      try {
+        const res = await fetch(BASE_URL + path, options);
+        const text = await res.text();
+        updateStatusBox(text);
+        return text;
+      } catch (err) {
+        updateStatusBox("Lỗi kết nối");
+        return null;
+      }
     }
-  }catch(e){
-    console.log(e);
-  }
-}
 
-// ===== STATUS =====
-async function refreshStatus(){
-  try{
-    const res = await safeFetch("/status");
-    if(document.getElementById("statusText")){
-      document.getElementById("statusText").innerText =
-        typeof res === "string" ? res : JSON.stringify(res);
+    function updateStatusBox(text) {
+      document.getElementById("statusText").textContent = text || "--";
     }
-  }catch{}
-}
-setInterval(refreshStatus, 3000);
-refreshStatus();
 
-// ===== LED =====
-async function loadEffects(){
-  const select = document.getElementById("effectSelect");
-  if(!select) return;
+    async function refreshStatus() {
+      try {
+        const res = await fetch(BASE_URL + "/grbl/status");
+        const text = await res.text();
+        document.getElementById("grblStatus").textContent = text;
+        document.getElementById("statusText").textContent = text;
+      } catch (err) {
+        document.getElementById("grblStatus").textContent = "Lỗi";
+        document.getElementById("statusText").textContent = "Lỗi kết nối";
+      }
+    }
 
-  try{
-    const data = await safeFetch("/led/effects");
-    select.innerHTML = "";
+    function parseSimpleJsonArray(text) {
+      try {
+        return JSON.parse(text);
+      } catch {
+        return [];
+      }
+    }
 
-    data.forEach((e,i)=>{
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = i + " - " + e;
-      select.appendChild(opt);
+    async function loadEffects() {
+      const select = document.getElementById("effectSelect");
+      select.innerHTML = '<option>Loading...</option>';
+
+      try {
+        const res = await fetch(BASE_URL + "/led/effects");
+        const text = await res.text();
+        const effects = parseSimpleJsonArray(text);
+
+        select.innerHTML = "";
+        if (!effects.length) {
+          select.innerHTML = '<option>No effects</option>';
+          return;
+        }
+
+        effects.forEach((name, index) => {
+          const opt = document.createElement("option");
+          opt.value = index;
+          opt.textContent = `${index} - ${name}`;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        select.innerHTML = '<option>Load error</option>';
+      }
+    }
+
+    document.getElementById("effectSelect").addEventListener("change", async function () {
+      await callApi("/led/effect?id=" + this.value);
     });
 
-  }catch{
-    select.innerHTML = "<option>Error</option>";
-  }
-}
+    const brightnessSlider = document.getElementById("brightnessSlider");
+    const speedSlider = document.getElementById("speedSlider");
+    const intensitySlider = document.getElementById("intensitySlider");
 
-if(document.getElementById("effectSelect")){
-  document.getElementById("effectSelect").addEventListener("change", function(){
-    callApi("/led/effect?id=" + this.value);
-  });
-}
-
-loadEffects();
-
-// ===== PATTERN =====
-async function loadPatterns(){
-  const container = document.getElementById("patternList");
-  if(!container) return;
-
-  container.innerHTML = "Loading...";
-
-  try{
-    const data = await safeFetch("/pattern/list");
-
-    container.innerHTML = "";
-
-    data.forEach(name=>{
-      const div = document.createElement("div");
-
-      div.innerHTML =
-        "<div class='pattern-item'>" +
-        "<span>" + name + "</span>" +
-        "<button class='btn primary'>RUN</button>" +
-        "</div>";
-
-      div.querySelector("button").onclick = ()=>{
-        callApi("/pattern/run?name=" + encodeURIComponent(name));
-      };
-
-      container.appendChild(div);
+    brightnessSlider.addEventListener("input", () => {
+      document.getElementById("brightnessValue").textContent = brightnessSlider.value;
+    });
+    speedSlider.addEventListener("input", () => {
+      document.getElementById("speedValue").textContent = speedSlider.value;
+    });
+    intensitySlider.addEventListener("input", () => {
+      document.getElementById("intensityValue").textContent = intensitySlider.value;
     });
 
-  }catch{
-    container.innerHTML = "Error";
-  }
-}
-
-// ===== WIFI =====
-async function scanWifi(){
-  const select = document.getElementById("wifiSelect");
-  const status = document.getElementById("wifiCurrent");
-
-  if(!select || !status) return;
-
-  select.innerHTML = "Scanning...";
-
-  try{
-    const data = await safeFetch("/wifi/scan");
-
-    status.innerText = data.current_ssid || "Chưa kết nối";
-
-    select.innerHTML = "";
-
-    data.networks.forEach(n=>{
-      const opt = document.createElement("option");
-      opt.value = n.ssid;
-      opt.textContent = n.ssid;
-      select.appendChild(opt);
+    brightnessSlider.addEventListener("change", async () => {
+      await callApi("/led/brightness?v=" + brightnessSlider.value);
+    });
+    speedSlider.addEventListener("change", async () => {
+      await callApi("/led/speed?v=" + speedSlider.value);
+    });
+    intensitySlider.addEventListener("change", async () => {
+      await callApi("/led/intensity?v=" + intensitySlider.value);
     });
 
-  }catch{
-    status.innerText = "Error";
-  }
-}
+    async function loadPatterns() {
+      const container = document.getElementById("patternList");
+      container.innerHTML = '<div class="card empty">Loading patterns...</div>';
 
-async function connectWifi(){
-  const ssid = document.getElementById("wifiSelect").value;
-  const password = document.getElementById("wifiPassword").value;
+      try {
+        const res = await fetch(BASE_URL + "/pattern/list");
+        const text = await res.text();
+        const patterns = parseSimpleJsonArray(text);
 
-  await fetch(BASE_URL + "/wifi/connect", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ssid: ssid, password: password})
-  });
-}
+        if (!patterns.length) {
+          container.innerHTML = '<div class="card empty">No patterns found</div>';
+          return;
+        }
 
-// ===== INIT =====
-loadPatterns();
-scanWifi();
+        container.innerHTML = "";
+        patterns.forEach(name => {
+          const item = document.createElement("div");
+          item.className = "pattern-item";
+          item.innerHTML = `
+            <div>
+              <div class="pattern-name">${name}</div>
+              <div class="small">Tap run to start</div>
+            </div>
+            <button class="btn primary" style="max-width:120px;">RUN</button>
+          `;
 
-</script>
+          item.querySelector("button").addEventListener("click", async () => {
+            const encoded = encodeURIComponent(name);
+            await callApi("/pattern/run?name=" + encoded);
+          });
+
+          container.appendChild(item);
+        });
+      } catch (err) {
+        container.innerHTML = `<div class="card empty">Load error: ${err.message}</div>`;
+      }
+    }
+
+    async function scanWifi() {
+      const select = document.getElementById("wifiSelect");
+      const current = document.getElementById("wifiCurrent");
+      if (!select || !current) return;
+
+      select.innerHTML = '<option>Đang quét...</option>';
+
+      try {
+        const res = await fetch(BASE_URL + "/wifi/scan");
+        const text = await res.text();
+        let data = {};
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = {};
+        }
+
+        const currentSsid = data.current_ssid || data.ssid || "Chưa kết nối";
+        current.textContent = currentSsid;
+
+        const networks = Array.isArray(data.networks) ? data.networks : [];
+        select.innerHTML = "";
+
+        if (!networks.length) {
+          select.innerHTML = '<option>Không tìm thấy Wi‑Fi</option>';
+          return;
+        }
+
+        networks.forEach(net => {
+          const opt = document.createElement("option");
+          if (typeof net === "string") {
+            opt.value = net;
+            opt.textContent = net;
+          } else {
+            const ssid = net.ssid || "(ẩn SSID)";
+            const signal = net.signal ? ` (${net.signal})` : "";
+            opt.value = ssid;
+            opt.textContent = ssid + signal;
+          }
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        current.textContent = "Lỗi quét Wi‑Fi";
+        select.innerHTML = '<option>Lỗi tải danh sách</option>';
+      }
+    }
+
+    async function connectWifi() {
+      const select = document.getElementById("wifiSelect");
+      const password = document.getElementById("wifiPassword");
+      const current = document.getElementById("wifiCurrent");
+      if (!select || !password || !current) return;
+
+      const ssid = select.value;
+      const pass = password.value;
+
+      if (!ssid) {
+        current.textContent = "Chưa chọn Wi‑Fi";
+        return;
+      }
+
+      current.textContent = "Đang kết nối...";
+
+      try {
+        const res = await fetch(BASE_URL + "/wifi/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ssid: ssid, password: pass })
+        });
+
+        const text = await res.text();
+        current.textContent = text || "Đã gửi lệnh kết nối";
+      } catch (err) {
+        current.textContent = "Lỗi kết nối Wi‑Fi";
+      }
+    }
+
+    refreshStatus();
+    loadEffects();
+    loadPatterns();
+    scanWifi();
+
+    setInterval(refreshStatus, 3000);
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js");
+    }
+  </script>
 </body>
 </html>
