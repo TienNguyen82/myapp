@@ -304,6 +304,7 @@
       width:100%;
       height:100%;
       object-fit:cover;
+      z-index:1;
     }
 
     #kaleidoCanvas{
@@ -314,8 +315,9 @@
     }
 
     .loaderText{
-      margin-top:18px;
-      text-align:center;
+      position: relative;
+      z-index: 2;
+      text-align: center;
     }
 
     .loaderTitle{
@@ -323,6 +325,8 @@
       font-size:32px;
       font-weight:700;
       letter-spacing:.4px;
+      text-shadow: 0 0 12px rgba(0,0,0,0.6);
+}
     }
 
     .loaderSub{
