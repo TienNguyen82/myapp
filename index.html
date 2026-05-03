@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bàn Cát</title>
 
-  <link rel="manifest" href="./manifest.json" />
+  <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#0f1115" />
 
   <style>
@@ -276,81 +276,76 @@
       letter-spacing: 0.2px;
     }
 
-    /* ===== KALEIDO LOADER ===== */
-    #loaderOverlay{
-      position:fixed;
-      inset:0;
-      z-index:99999;
-      background:radial-gradient(circle at center, #0b1630 0%, #050914 55%, #02040a 100%);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-      flex-direction:column;
-      opacity:1;
-      visibility:visible;
-      transition:opacity .55s ease, visibility .55s ease;
-    }
-
-    #loaderOverlay.hide{
-      opacity:0;
-      visibility:hidden;
-      pointer-events:none;
-    }
-
-    #loaderVideo{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      z-index:1;
-    }
-
-    #kaleidoCanvas{
-      width:min(78vw, 520px);
-      height:min(78vw, 520px);
-      display:block;
-      filter: drop-shadow(0 0 18px rgba(255,220,120,.18));
-    }
-
-    .loaderText{
-      position: absolute;
-      bottom: 40px;
-      z-index: 2;
-      text-align: center;
-      width: 100%;
-    }
-
-    .loaderTitle{
-      color:#f4ead6;
-      font-size:32px;
-      font-weight:700;
-      letter-spacing:.4px;
-      text-shadow: 0 0 12px rgba(0,0,0,0.6);
+  
+    /* ===== LOADER PREMIUM ===== */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #0b1220, #020617);
+  overflow: hidden;
+  z-index: 9999;
 }
-    }
 
-    .loaderSub{
-      color:rgba(244,234,214,.72);
-      margin-top:6px;
-      font-size:15px;
-    }
+/* bubbles */
+.bg-bubbles span {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  animation: float 12s infinite linear;
+}
 
+.bg-bubbles span:nth-child(1){ width:80px;height:80px;left:10%;top:70%;}
+.bg-bubbles span:nth-child(2){ width:120px;height:120px;left:70%;top:60%;}
+.bg-bubbles span:nth-child(3){ width:60px;height:60px;left:40%;top:80%;}
+.bg-bubbles span:nth-child(4){ width:100px;height:100px;left:80%;top:20%;}
+.bg-bubbles span:nth-child(5){ width:70px;height:70px;left:20%;top:30%;}
+.bg-bubbles span:nth-child(6){ width:90px;height:90px;left:50%;top:10%;}
+
+@keyframes float {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-200px); }
+}
+
+/* canvas */
+#neonCanvas {
+  position: absolute;
+  inset: 0;
+}
+
+/* text */
+.loader-text {
+  position: absolute;
+  bottom: 25%;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.sub {
+  opacity: 0.6;
+}
 
   </style>
 </head>
 <body>
 
+<!-- LOADER PREMIUM -->
+<div id="loader">
+  <div class="bg-bubbles">
+    <span></span><span></span><span></span>
+    <span></span><span></span><span></span>
+  </div>
 
-<!-- VIDEO LOADER -->
-<div id="loaderOverlay">
-  <video id="loaderVideo" autoplay muted loop playsinline>
-    <source src="Animation.mp4" type="video/mp4">
-  </video>
-  <div class="loaderText">
-    <div class="loaderTitle">Bàn Cát</div>
-    <div class="loaderSub">Đang khởi động hệ thống...</div>
+  <canvas id="neonCanvas"></canvas>
+
+  <div class="loader-text">
+    <div class="title">Bàn Cát</div>
+    <div class="sub">Đang khởi động hệ thống...</div>
   </div>
 </div>
 
@@ -374,11 +369,21 @@
       <div class="card">
         <h2>Điều khiển máy</h2>
         <div class="grid-2">
-          <button class="btn ok" onclick="callApi('/grbl/home')">VỀ GỐC</button>
-          <button class="btn primary" onclick="callApi('/grbl/unlock')">MỞ KHÓA</button>
-          <button class="btn warn" onclick="callApi('/pattern/pause')">TẠM DỪNG</button>
-          <button class="btn primary" onclick="callApi('/pattern/resume')">TIẾP TỤC</button>
-          <button class="btn danger" onclick="callApi('/pattern/stop')" style="grid-column:1/-1;">DỪNG</button>
+          <button class="btn ok" onclick="homeMachine()">VỀ GỐC</button>
+          <button class="btn primary" onclick="unlockMachine()">MỞ KHÓA</button>
+          <button class="btn warn" onclick="pauseRun()">TẠM DỪNG</button>
+          <button class="btn primary" onclick="resumeRun()">TIẾP TỤC</button>
+          <button class="btn danger" onclick="stopRun()" style="grid-column:1/-1;">DỪNG</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Test máy nhanh</h2>
+        <div class="grid-2">
+          <button class="btn dark" onclick="jog('X', -10)">X -10</button>
+          <button class="btn dark" onclick="jog('X', 10)">X +10</button>
+          <button class="btn dark" onclick="jog('Y', -10)">Y -10</button>
+          <button class="btn dark" onclick="jog('Y', 10)">Y +10</button>
         </div>
       </div>
 
@@ -410,7 +415,6 @@
     </section>
 
     <section id="led" class="page">
-
       <div class="card">
         <h2>Hiệu ứng</h2>
         <div class="label">Hiệu ứng WLED</div>
@@ -507,9 +511,7 @@
   </div>
 
   <script>
-    const IS_GITHUB = location.hostname.includes("github.io");
-    const API_BASE = "http://192.168.4.1:5000";
-    const BASE_URL = IS_GITHUB ? API_BASE : "";
+    const BASE_URL = "http://192.168.4.1:5000";
 
     document.querySelectorAll(".tab").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -517,6 +519,17 @@
         document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
         btn.classList.add("active");
         document.getElementById(btn.dataset.tab).classList.add("active");
+
+        if (btn.dataset.tab === "led") {
+          loadEffects();
+        }
+        if (btn.dataset.tab === "patterns") {
+          loadPatterns();
+          loadPatternProgress();
+        }
+        if (btn.dataset.tab === "wifi") {
+          refreshStatus();
+        }
       });
     });
 
@@ -551,10 +564,10 @@
         const res = await fetch(BASE_URL + "/status");
         const data = await res.json();
 
-        document.getElementById("grblStatus").textContent =
-          data.grbl_status || "Unknown";
-        document.getElementById("statusText").textContent =
-          data.grbl_status || "--";
+        const machineStatus = data.grbl_status || data.status || data.state || (data.connected ? "Connected" : "Unknown");
+        const progressText = (data.progress !== undefined) ? ` • ${data.progress}%` : "";
+        document.getElementById("grblStatus").textContent = machineStatus + progressText;
+        document.getElementById("statusText").textContent = data.last_error ? ("Lỗi: " + data.last_error) : (machineStatus + progressText);
 
         if (data.wifi && data.wifi.connected) {
           document.getElementById("wifiStatus").textContent =
@@ -573,9 +586,23 @@
           : (data.pattern_status || "--");
         document.getElementById("patternMiniStatus").textContent = pText;
 
-        const powerOn = !!data.power;
-        document.getElementById("powerStatusText").textContent = powerOn ? "Nguồn đang bật" : "Nguồn đang tắt";
-        document.getElementById("powerDot").className = powerOn ? "dot ok" : "dot bad";
+        // ===== POWER (FIX CHUẨN) =====
+        try {
+          const p = await fetch(BASE_URL + "/power/status");
+          const pdata = await p.json();
+
+          const powerOn = !!pdata.power;
+
+          document.getElementById("powerStatusText").textContent =
+            powerOn ? "Nguồn đang bật" : "Nguồn đang tắt";
+
+          document.getElementById("powerDot").className =
+            powerOn ? "dot ok" : "dot bad";
+
+        } catch (e) {
+          document.getElementById("powerStatusText").textContent = "Không đọc được nguồn";
+          document.getElementById("powerDot").className = "dot bad";
+        }
       } catch (err) {
         document.getElementById("grblStatus").textContent = "Status error";
         document.getElementById("statusText").textContent = "Error: " + err.message;
@@ -585,32 +612,125 @@
       }
     }
 
+
+    async function runGcode(gcode) {
+      try {
+        const text = await fetchText("/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gcode })
+        });
+        updateStatusBox(text || "OK");
+        setTimeout(refreshStatus, 300);
+        return true;
+      } catch (err) {
+        updateStatusBox("Lỗi chạy G-code: " + err.message);
+        return false;
+      }
+    }
+
+    function unlockMachine() {
+      return runGcode("$X");
+    }
+
+    function homeMachine() {
+      return runGcode("$H");
+    }
+
+    function jog(axis, value) {
+      const v = Number(value);
+      return runGcode(`$X\nG91\nG1 ${axis}${v} F500\nG90`);
+    }
+
+    async function pauseRun() {
+      try {
+        await fetchText("/pause", { method: "POST" });
+      } catch (e1) {
+        try { await fetchText("/pattern/pause", { method: "POST" }); }
+        catch (e2) { updateStatusBox("Lỗi tạm dừng: " + e2.message); }
+      }
+      refreshStatus();
+    }
+
+    async function resumeRun() {
+      try {
+        await fetchText("/resume", { method: "POST" });
+      } catch (e1) {
+        try { await fetchText("/pattern/resume", { method: "POST" }); }
+        catch (e2) { updateStatusBox("Lỗi tiếp tục: " + e2.message); }
+      }
+      refreshStatus();
+    }
+
+    async function stopRun() {
+      try {
+        await fetchText("/stop", { method: "POST" });
+      } catch (e1) {
+        try { await fetchText("/pattern/stop", { method: "POST" }); }
+        catch (e2) { updateStatusBox("Lỗi dừng: " + e2.message); }
+      }
+      refreshStatus();
+    }
+
     async function powerOn() {
       await callApi("/power/on", { method: "POST" });
+      setTimeout(refreshStatus, 300);
     }
 
     async function powerOff() {
       await callApi("/power/off", { method: "POST" });
+      setTimeout(refreshStatus, 300);
     }
 
     async function loadEffects() {
       const select = document.getElementById("effectSelect");
       select.innerHTML = '<option>Loading...</option>';
+
       try {
-        const text = await fetchText("/led/effects");
-        const effects = parseSimpleJsonArray(text);
+        const res = await fetch(BASE_URL + "/led/effects?ts=" + Date.now(), {
+          cache: "no-store"
+        });
+
+        const effects = await res.json();
+        console.log("effects =", effects);
+
         select.innerHTML = "";
-        if (!effects.length) {
+
+        if (!Array.isArray(effects) || !effects.length) {
           select.innerHTML = '<option>No effects</option>';
+
+          setTimeout(async () => {
+            try {
+              const retryRes = await fetch(BASE_URL + "/led/effects?ts=" + Date.now(), {
+                cache: "no-store"
+              });
+              const retryEffects = await retryRes.json();
+
+              if (Array.isArray(retryEffects) && retryEffects.length) {
+                select.innerHTML = "";
+                retryEffects.forEach((name, index) => {
+                  const opt = document.createElement("option");
+                  opt.value = index;
+                  opt.textContent = `${index} - ${name}`;
+                  select.appendChild(opt);
+                });
+              }
+            } catch (e) {
+              console.log("retry loadEffects error:", e);
+            }
+          }, 1000);
+
           return;
         }
+
         effects.forEach((name, index) => {
           const opt = document.createElement("option");
           opt.value = index;
           opt.textContent = `${index} - ${name}`;
           select.appendChild(opt);
         });
-      } catch {
+      } catch (err) {
+        console.log("loadEffects error:", err);
         select.innerHTML = '<option>Load error</option>';
       }
     }
@@ -668,7 +788,7 @@
           `;
           item.querySelector("button").addEventListener("click", async () => {
             const encoded = encodeURIComponent(name);
-            await callApi("/pattern/run?name=" + encoded);
+            await callApi("/pattern/run?name=" + encoded, { method: "POST" });
             loadPatternProgress();
           });
           container.appendChild(item);
@@ -680,8 +800,22 @@
 
     async function loadPatternProgress() {
       try {
-        const res = await fetch(BASE_URL + "/pattern/progress");
-        const data = await res.json();
+        let res = await fetch(BASE_URL + "/pattern/progress");
+        let data;
+        if (res.ok) {
+          data = await res.json();
+        } else {
+          res = await fetch(BASE_URL + "/status");
+          const st = await res.json();
+          data = {
+            status: st.running ? "running" : (st.status || "idle"),
+            progress: st.progress || 0,
+            current_line: st.sent_lines || 0,
+            total_lines: st.total_lines || 0,
+            current_file: st.current_file || "--",
+            last_error: st.last_error || ""
+          };
+        }
 
         const statusText = document.getElementById("patternStatusText");
         const progressBar = document.getElementById("patternProgressBar");
@@ -819,20 +953,54 @@
     setInterval(loadPatternProgress, 1000);
   </script>
 
-
 <script>
-function hideLoader() {
-  const el = document.getElementById("loaderOverlay");
-  if (!el) return;
-  el.classList.add("hide");
-  setTimeout(() => el.remove(), 650);
+const canvas = document.getElementById("neonCanvas");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+function resize(){
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+resize();
+window.onresize = resize;
+
+// điểm chuyển động
+let t = 0;
+
+function draw() {
+  ctx.fillStyle = "rgba(2,6,23,0.15)";
+  ctx.fillRect(0,0,w,h);
+
+  let x = w/2 + Math.sin(t/20) * 120;
+  let y = h/2 + Math.cos(t/30) * 120;
+
+  // màu đổi liên tục
+  let r = Math.sin(t*0.05)*127+128;
+  let g = Math.sin(t*0.07)*127+128;
+  let b = Math.sin(t*0.09)*127+128;
+
+  ctx.beginPath();
+  ctx.arc(x,y,3,0,Math.PI*2);
+  ctx.fillStyle = `rgb(${r},${g},${b})`;
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = `rgb(${r},${g},${b})`;
+  ctx.fill();
+
+  t++;
+  requestAnimationFrame(draw);
+}
+draw();
+
+// hide loader
+function hideLoader(){
+  const l = document.getElementById("loader");
+  l.style.opacity = "0";
+  setTimeout(()=> l.remove(),500);
 }
 
-window.addEventListener("load", () => {
-  setTimeout(hideLoader, 2000);
-});
-
-setTimeout(hideLoader, 5000);
+setTimeout(hideLoader, 4000);
 </script>
 
 </body>
+</html>
